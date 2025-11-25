@@ -3,6 +3,14 @@
 import { useState, useEffect } from 'react';
 import { GalleryFolder, GalleryImage } from '@/types';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation, Pagination, Keyboard, A11y } from 'swiper/modules';
+import { X } from 'lucide-react';
+
+// Import Swiper styles
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
 
 interface GalleryProps {
     folders: GalleryFolder[];
@@ -12,6 +20,10 @@ export default function Gallery({ folders }: GalleryProps) {
     const [selectedFolderId, setSelectedFolderId] = useState<string>(folders[0]?.id || '');
     const [images, setImages] = useState<GalleryImage[]>([]);
     const [loading, setLoading] = useState(false);
+
+    // Lightbox state
+    const [lightboxOpen, setLightboxOpen] = useState(false);
+    const [initialSlide, setInitialSlide] = useState(0);
 
     useEffect(() => {
         if (!selectedFolderId) return;
@@ -34,6 +46,19 @@ export default function Gallery({ folders }: GalleryProps) {
         fetchImages();
     }, [selectedFolderId]);
 
+    const openLightbox = (index: number) => {
+        setInitialSlide(index);
+        setLightboxOpen(true);
+        // Prevent body scroll when lightbox is open
+        document.body.style.overflow = 'hidden';
+    };
+
+    const closeLightbox = () => {
+        setLightboxOpen(false);
+        // Restore body scroll
+        document.body.style.overflow = 'unset';
+    };
+
     if (folders.length === 0) {
         return null;
     }
@@ -55,8 +80,8 @@ export default function Gallery({ folders }: GalleryProps) {
                             key={folder.id}
                             onClick={() => setSelectedFolderId(folder.id)}
                             className={`px-6 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${selectedFolderId === folder.id
-                                    ? 'bg-primary text-white shadow-lg scale-105'
-                                    : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+                                ? 'bg-primary text-white shadow-lg scale-105'
+                                : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
                                 }`}
                         >
                             {folder.name}
@@ -76,7 +101,7 @@ export default function Gallery({ folders }: GalleryProps) {
                             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
                         >
                             <AnimatePresence mode='popLayout'>
-                                {images.map((image) => (
+                                {images.map((image, index) => (
                                     <motion.div
                                         key={image.id}
                                         layout
@@ -84,11 +109,13 @@ export default function Gallery({ folders }: GalleryProps) {
                                         animate={{ opacity: 1, scale: 1 }}
                                         exit={{ opacity: 0, scale: 0.9 }}
                                         transition={{ duration: 0.3 }}
-                                        className="relative group aspect-[4/3] overflow-hidden rounded-lg shadow-md bg-gray-200"
+                                        onClick={() => openLightbox(index)}
+                                        className="relative group aspect-[4/3] overflow-hidden rounded-lg shadow-md bg-gray-200 cursor-pointer"
                                     >
                                         <img
                                             src={image.url}
                                             alt={image.name}
+                                            loading="lazy"
                                             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                                         />
                                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors duration-300 flex items-end justify-start p-6">
@@ -109,6 +136,53 @@ export default function Gallery({ folders }: GalleryProps) {
                     )}
                 </div>
             </div>
+
+            {/* Lightbox Overlay */}
+            <AnimatePresence>
+                {lightboxOpen && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center"
+                    >
+                        <button
+                            onClick={closeLightbox}
+                            className="absolute top-4 right-4 z-[110] text-white/70 hover:text-white p-2 transition-colors"
+                        >
+                            <X size={40} />
+                        </button>
+
+                        <div className="w-full h-full max-w-[1920px] max-h-[1080px] p-4 md:p-10">
+                            <Swiper
+                                modules={[Navigation, Pagination, Keyboard, A11y]}
+                                initialSlide={initialSlide}
+                                navigation
+                                pagination={{ clickable: true }}
+                                keyboard={{ enabled: true }}
+                                loop={images.length > 1}
+                                className="w-full h-full"
+                                spaceBetween={30}
+                            >
+                                {images.map((img) => (
+                                    <SwiperSlide key={img.id} className="flex items-center justify-center">
+                                        <div className="relative w-full h-full flex items-center justify-center">
+                                            <img
+                                                src={img.url}
+                                                alt={img.name}
+                                                className="max-w-full max-h-full object-contain select-none"
+                                            />
+                                            <div className="absolute bottom-4 left-0 right-0 text-center text-white/90 bg-black/50 py-2 rounded-md mx-auto max-w-md backdrop-blur-sm">
+                                                <p className="text-lg font-medium">{img.name}</p>
+                                            </div>
+                                        </div>
+                                    </SwiperSlide>
+                                ))}
+                            </Swiper>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </section>
     );
 }

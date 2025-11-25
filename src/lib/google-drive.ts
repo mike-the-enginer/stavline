@@ -1,35 +1,82 @@
+import { google, drive_v3 } from 'googleapis';
 import { GalleryFolder, GalleryImage } from '@/types';
 
-// Mock data for development
-const MOCK_FOLDERS: GalleryFolder[] = [
-    { id: '1', name: 'Kúpeľne' },
-    { id: '2', name: 'Zateplenie' },
-    { id: '3', name: 'Fasády' },
-];
+const SCOPES = ['https://www.googleapis.com/auth/drive.readonly'];
 
-const MOCK_IMAGES: Record<string, GalleryImage[]> = {
-    '1': [
-        { id: 'img1', name: 'Bathroom 1', url: 'https://placehold.co/600x400?text=Kupelna+1' },
-        { id: 'img2', name: 'Bathroom 2', url: 'https://placehold.co/600x400?text=Kupelna+2' },
-    ],
-    '2': [
-        { id: 'img3', name: 'Insulation 1', url: 'https://placehold.co/600x400?text=Zateplenie+1' },
-    ],
-    '3': [
-        { id: 'img4', name: 'Facade 1', url: 'https://placehold.co/600x400?text=Fasada+1' },
-        { id: 'img5', name: 'Facade 2', url: 'https://placehold.co/600x400?text=Fasada+2' },
-        { id: 'img6', name: 'Facade 3', url: 'https://placehold.co/600x400?text=Fasada+3' },
-    ],
+// Helper to initialize the Drive client
+export const getDriveClient = () => {
+    const credentialsJson = process.env.GOOGLE_DRIVE_CREDENTIALS || process.env.GCP_SA_KEY;
+    const rootFolderId = process.env.GOOGLE_DRIVE_ROOT_FOLDER_ID;
+
+    if (!credentialsJson) {
+        console.warn('Missing GOOGLE_DRIVE_CREDENTIALS or GCP_SA_KEY. Using mock data would be appropriate here, but throwing error for now.');
+        // In a real app, you might want to fallback to mocks if dev, but let's be strict for now as requested.
+        throw new Error('Missing GOOGLE_DRIVE_CREDENTIALS or GCP_SA_KEY environment variable');
+    }
+
+    if (!rootFolderId) {
+        throw new Error('Missing GOOGLE_DRIVE_ROOT_FOLDER_ID environment variable');
+    }
+
+    try {
+        const credentials = JSON.parse(credentialsJson);
+        const auth = new google.auth.GoogleAuth({
+            credentials,
+            scopes: SCOPES,
+        });
+
+        return google.drive({ version: 'v3', auth });
+    } catch (error) {
+        console.error('Error parsing Google Drive credentials:', error);
+        throw new Error('Invalid GOOGLE_DRIVE_CREDENTIALS format');
+    }
 };
 
 export async function getGalleryFolders(): Promise<GalleryFolder[]> {
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    return MOCK_FOLDERS;
+    try {
+        const drive = getDriveClient();
+        const rootFolderId = process.env.GOOGLE_DRIVE_ROOT_FOLDER_ID;
+
+        const response = await drive.files.list({
+            q: `'${rootFolderId}' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed = false`,
+            fields: 'files(id, name)',
+            orderBy: 'name',
+        });
+
+        const folders = (response.data.files as drive_v3.Schema$File[]) || [];
+
+        return folders.map((file) => ({
+            id: file.id || '',
+            name: file.name || 'Untitled',
+        }));
+    } catch (error) {
+        console.error('Error fetching gallery folders:', error);
+        return [];
+    }
 }
 
 export async function getFolderImages(folderId: string): Promise<GalleryImage[]> {
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    return MOCK_IMAGES[folderId] || [];
+    try {
+        const drive = getDriveClient();
+
+        const response = await drive.files.list({
+            q: `'${folderId}' in parents and mimeType contains 'image/' and trashed = false`,
+            fields: 'files(id, name, webViewLink, thumbnailLink, webContentLink)',
+            orderBy: 'createdTime desc',
+        });
+
+        const files = (response.data.files as drive_v3.Schema$File[]) || [];
+
+        return files.map((file) => {
+            return {
+                id: file.id || '',
+                name: file.name || 'Untitled',
+                url: `/api/gallery/image/${file.id}`, // Proxy through our API to handle auth
+                thumbnailUrl: file.thumbnailLink || undefined,
+            };
+        });
+    } catch (error) {
+        console.error(`Error fetching images for folder ${folderId}:`, error);
+        return [];
+    }
 }

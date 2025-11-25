@@ -19,9 +19,9 @@ export default function Footer() {
                     <div>
                         <h3 className="text-lg font-semibold mb-4">Rýchle odkazy</h3>
                         <ul className="space-y-2">
-                            <li><a href="#services" className="text-gray-300 hover:text-white">Služby</a></li>
-                            <li><a href="#gallery" className="text-gray-300 hover:text-white">Galéria</a></li>
-                            <li><a href="#contact" className="text-gray-300 hover:text-white">Kontakt</a></li>
+                            <li><a href="/#services" className="text-gray-300 hover:text-white">Služby</a></li>
+                            <li><a href="/galeria" className="text-gray-300 hover:text-white">Galéria</a></li>
+                            <li><a href="/#contact" className="text-gray-300 hover:text-white">Kontakt</a></li>
                         </ul>
                     </div>
                 </div>
