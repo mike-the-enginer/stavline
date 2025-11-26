@@ -20,6 +20,7 @@ export const getDriveClient = () => {
 
     try {
         const credentials = JSON.parse(credentialsJson);
+        console.log('Initializing Drive Client with Service Account:', credentials.client_email);
         const auth = new google.auth.GoogleAuth({
             credentials,
             scopes: SCOPES,
