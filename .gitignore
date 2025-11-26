@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# GCP Service Account Keys and Scripts
+gcp-sa-key.json
+setup_cicd_sa.sh
