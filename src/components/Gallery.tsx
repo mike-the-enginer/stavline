@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import NextImage from 'next/image';
 import { GalleryFolder, GalleryImage } from '@/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -112,11 +113,12 @@ export default function Gallery({ folders }: GalleryProps) {
                                         onClick={() => openLightbox(index)}
                                         className="relative group aspect-[4/3] overflow-hidden rounded-lg shadow-md bg-gray-200 cursor-pointer"
                                     >
-                                        <img
+                                        <NextImage
                                             src={image.url}
                                             alt={image.name}
-                                            loading="lazy"
-                                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                            fill
+                                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                                            className="object-cover transition-transform duration-500 group-hover:scale-110"
                                         />
                                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors duration-300 flex items-end justify-start p-6">
                                             <p className="text-white font-semibold opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300">
