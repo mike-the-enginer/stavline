@@ -56,14 +56,15 @@ jobs:
           docker push europe-west1-docker.pkg.dev/${{ env.PROJECT_ID }}/stavline/stavline:latest
       
       - name: Deploy to Cloud Run
-        run: |
-          gcloud run deploy ${{ env.SERVICE_NAME }} \
-            --image europe-west1-docker.pkg.dev/${{ env.PROJECT_ID }}/stavline/stavline:${{ github.sha }} \
-            --platform managed \
-            --region ${{ env.REGION }} \
-            --allow-unauthenticated \
-            --set-env-vars "GOOGLE_DRIVE_ROOT_FOLDER_ID=${{ secrets.GOOGLE_DRIVE_ROOT_FOLDER_ID }}" \
-            --set-env-vars 'GOOGLE_DRIVE_CREDENTIALS=${{ secrets.GOOGLE_DRIVE_CREDENTIALS }}'
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ${{ env.SERVICE_NAME }}
+          region: ${{ env.REGION }}
+          image: europe-west1-docker.pkg.dev/${{ env.PROJECT_ID }}/stavline/stavline:${{ github.sha }}
+          flags: '--allow-unauthenticated'
+          env_vars: |
+            GOOGLE_DRIVE_ROOT_FOLDER_ID=${{ secrets.GOOGLE_DRIVE_ROOT_FOLDER_ID }}
+            GOOGLE_DRIVE_CREDENTIALS=${{ secrets.GOOGLE_DRIVE_CREDENTIALS }}
       
       - name: Post-deployment Summary
         run: |
