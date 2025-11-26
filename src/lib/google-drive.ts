@@ -51,11 +51,6 @@ export async function getGalleryFolders(): Promise<GalleryFolder[]> {
 
         console.log('Fetching gallery folders from root folder:', rootFolderId);
 
-        // Log the identity we are using
-        // @ts-expect-error - accessing private property for debug
-        const email = drive.context._options.auth.credentials.client_email;
-        console.log('Using Service Account:', email);
-
         const query = `'${rootFolderId}' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed = false`;
         console.log('Drive Query:', query);
 
