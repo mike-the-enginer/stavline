@@ -62,7 +62,8 @@ jobs:
             --platform managed \
             --region ${{ env.REGION }} \
             --allow-unauthenticated \
-            --set-secrets "GOOGLE_DRIVE_CREDENTIALS=GCP_SA_KEY:latest,GOOGLE_DRIVE_ROOT_FOLDER_ID=GOOGLE_DRIVE_ROOT_FOLDER_ID:latest"
+            --set-env-vars "GOOGLE_DRIVE_ROOT_FOLDER_ID=${{ secrets.GOOGLE_DRIVE_ROOT_FOLDER_ID }}" \
+            --set-env-vars 'GOOGLE_DRIVE_CREDENTIALS=${{ secrets.GOOGLE_DRIVE_CREDENTIALS }}'
       
       - name: Post-deployment Summary
         run: |
