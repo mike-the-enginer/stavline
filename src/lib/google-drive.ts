@@ -38,6 +38,8 @@ export async function getGalleryFolders(): Promise<GalleryFolder[]> {
         const drive = getDriveClient();
         const rootFolderId = process.env.GOOGLE_DRIVE_ROOT_FOLDER_ID;
 
+        console.log('Fetching gallery folders from root folder:', rootFolderId);
+
         const response = await drive.files.list({
             q: `'${rootFolderId}' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed = false`,
             fields: 'files(id, name)',
@@ -46,12 +48,18 @@ export async function getGalleryFolders(): Promise<GalleryFolder[]> {
 
         const folders = (response.data.files as drive_v3.Schema$File[]) || [];
 
+        console.log(`Found ${folders.length} gallery folders`);
+
         return folders.map((file) => ({
             id: file.id || '',
             name: file.name || 'Untitled',
         }));
     } catch (error) {
         console.error('Error fetching gallery folders:', error);
+        if (error instanceof Error) {
+            console.error('Error message:', error.message);
+            console.error('Error stack:', error.stack);
+        }
         return [];
     }
 }
