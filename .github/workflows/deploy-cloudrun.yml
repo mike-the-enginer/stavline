@@ -15,17 +15,16 @@ on:
           - production
           - staging
 
-env:
-  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-  REGION: europe-west1
-  SERVICE_NAME: stavline
-  IMAGE_NAME: gcr.io/${{ secrets.GCP_PROJECT_ID }}/stavline
-
 jobs:
   deploy:
     name: Deploy to Cloud Run
     runs-on: ubuntu-latest
     environment: dev
+
+    env:
+      PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+      REGION: europe-west1
+      SERVICE_NAME: stavline
     
     permissions:
       contents: read
@@ -48,18 +47,18 @@ jobs:
       
       - name: Build Docker image
         run: |
-          docker build -t ${{ env.IMAGE_NAME }}:${{ github.sha }} \
-                       -t ${{ env.IMAGE_NAME }}:latest .
+          docker build -t europe-west1-docker.pkg.dev/${{ env.PROJECT_ID }}/stavline:${{ github.sha }} \
+                       -t europe-west1-docker.pkg.dev/${{ env.PROJECT_ID }}/stavline:latest .
       
       - name: Push Docker image
         run: |
-          docker push ${{ env.IMAGE_NAME }}:${{ github.sha }}
-          docker push ${{ env.IMAGE_NAME }}:latest
+          docker push europe-west1-docker.pkg.dev/${{ env.PROJECT_ID }}/stavline:${{ github.sha }}
+          docker push europe-west1-docker.pkg.dev/${{ env.PROJECT_ID }}/stavline:latest
       
       - name: Deploy to Cloud Run
         run: |
           gcloud run deploy ${{ env.SERVICE_NAME }} \
-            --image ${{ env.IMAGE_NAME }}:${{ github.sha }} \
+            --image europe-west1-docker.pkg.dev/${{ env.PROJECT_ID }}/stavline:${{ github.sha }} \
             --platform managed \
             --region ${{ env.REGION }} \
             --allow-unauthenticated \
