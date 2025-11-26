@@ -6,6 +6,9 @@ import Contact from '@/components/Contact';
 import Footer from '@/components/Footer';
 import { getGalleryFolders } from '@/lib/google-drive';
 
+// Revalidate every 5 minutes so Drive changes appear without redeploy while reducing per-request load.
+export const revalidate = 300;
+
 export default async function Home() {
   const folders = await getGalleryFolders();
 
