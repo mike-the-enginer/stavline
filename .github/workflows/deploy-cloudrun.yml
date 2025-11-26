@@ -65,6 +65,7 @@ jobs:
             --platform managed \
             --region ${{ env.REGION }} \
             --allow-unauthenticated \
+            --clear-env-vars \
             --set-env-vars "GOOGLE_DRIVE_ROOT_FOLDER_ID=${{ secrets.GOOGLE_DRIVE_ROOT_FOLDER_ID }}" \
             --set-env-vars "GOOGLE_DRIVE_CREDENTIALS=$CREDS_B64"
       
