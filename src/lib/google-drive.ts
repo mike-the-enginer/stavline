@@ -19,7 +19,18 @@ export const getDriveClient = () => {
     }
 
     try {
-        const credentials = JSON.parse(credentialsJson);
+        let credentialsString = credentialsJson;
+
+        // Check if the string is Base64 encoded (basic check: no curly braces at start)
+        if (!credentialsJson.trim().startsWith('{')) {
+            try {
+                credentialsString = Buffer.from(credentialsJson, 'base64').toString('utf-8');
+            } catch (e) {
+                console.warn('Failed to decode Base64 credentials, assuming raw JSON');
+            }
+        }
+
+        const credentials = JSON.parse(credentialsString);
         console.log('Initializing Drive Client with Service Account:', credentials.client_email);
         const auth = new google.auth.GoogleAuth({
             credentials,
