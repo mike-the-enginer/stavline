@@ -61,7 +61,8 @@ jobs:
             --image europe-west1-docker.pkg.dev/${{ env.PROJECT_ID }}/stavline/stavline:${{ github.sha }} \
             --platform managed \
             --region ${{ env.REGION }} \
-            --set-secrets "GOOGLE_DRIVE_CREDENTIALS=GCP_SA_KEY:latest"
+            --allow-unauthenticated \
+            --set-secrets "GOOGLE_DRIVE_CREDENTIALS=GCP_SA_KEY:latest,GOOGLE_DRIVE_ROOT_FOLDER_ID=GOOGLE_DRIVE_ROOT_FOLDER_ID:latest"
       
       - name: Post-deployment Summary
         run: |
