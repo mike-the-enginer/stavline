@@ -67,9 +67,7 @@ jobs:
           CREDS_B64=$(echo '${{ secrets.GOOGLE_DRIVE_CREDENTIALS }}' | base64 -w 0)
           
           gcloud run services update ${{ env.SERVICE_NAME }} \
-            --platform managed \
             --region ${{ env.REGION }} \
-            --allow-unauthenticated \
             --set-secrets="GOOGLE_DRIVE_CREDENTIALS=GOOGLE_DRIVE_CREDENTIALS:latest, GCP_SA_KEY=GCP_SA_KEY:latest"
           
           gcloud run deploy ${{ env.SERVICE_NAME }} \
