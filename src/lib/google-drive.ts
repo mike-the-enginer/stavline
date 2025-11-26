@@ -51,13 +51,22 @@ export async function getGalleryFolders(): Promise<GalleryFolder[]> {
 
         console.log('Fetching gallery folders from root folder:', rootFolderId);
 
+        // Log the identity we are using
+        // @ts-expect-error - accessing private property for debug
+        const email = drive.context._options.auth.credentials.client_email;
+        console.log('Using Service Account:', email);
+
+        const query = `'${rootFolderId}' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed = false`;
+        console.log('Drive Query:', query);
+
         const response = await drive.files.list({
-            q: `'${rootFolderId}' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed = false`,
-            fields: 'files(id, name)',
+            q: query,
+            fields: 'files(id, name, mimeType, parents)',
             orderBy: 'name',
         });
 
         const folders = (response.data.files as drive_v3.Schema$File[]) || [];
+        console.log('Raw Drive Response Files:', JSON.stringify(folders, null, 2));
 
         console.log(`Found ${folders.length} gallery folders`);
 
