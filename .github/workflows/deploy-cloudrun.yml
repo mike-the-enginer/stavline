@@ -63,7 +63,7 @@ jobs:
             --platform managed \
             --region ${{ env.REGION }} \
             --allow-unauthenticated \
-            --update-secrets "GOOGLE_DRIVE_CREDENTIALS=projects/${{ env.PROJECT_ID }}/secrets/GOOGLE_DRIVE_CREDENTIALS:latest,GCP_SA_KEY=projects/${{ env.PROJECT_ID }}/secrets/GCP_SA_KEY:latest,GOOGLE_DRIVE_ROOT_FOLDER_ID=projects/${{ env.PROJECT_ID }}/secrets/GOOGLE_DRIVE_ROOT_FOLDER_ID:latest" \
+            --update-secrets "GOOGLE_DRIVE_CREDENTIALS=GOOGLE_DRIVE_CREDENTIALS:latest,GCP_SA_KEY=GCP_SA_KEY:latest,GOOGLE_DRIVE_ROOT_FOLDER_ID=GOOGLE_DRIVE_ROOT_FOLDER_ID:latest" \
             --memory 1024Mi \
             --cpu 2 \
             --concurrency 80 \
