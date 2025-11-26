@@ -60,7 +60,8 @@ jobs:
           gcloud run deploy ${{ env.SERVICE_NAME }} \
             --image europe-west1-docker.pkg.dev/${{ env.PROJECT_ID }}/stavline/stavline:${{ github.sha }} \
             --platform managed \
-            --region ${{ env.REGION }}
+            --region ${{ env.REGION }} \
+            --set-env-vars "GOOGLE_DRIVE_CREDENTIALS=${{ secrets.GCP_SA_KEY }}"
       
       - name: Post-deployment Summary
         run: |
