@@ -47,8 +47,13 @@ jobs:
       
       - name: Build Docker image
         run: |
-          docker build -t europe-west1-docker.pkg.dev/${{ env.PROJECT_ID }}/stavline/stavline:${{ github.sha }} \
-                       -t europe-west1-docker.pkg.dev/${{ env.PROJECT_ID }}/stavline/stavline:latest .
+          CREDS_B64=$(echo '${{ secrets.GOOGLE_DRIVE_CREDENTIALS }}' | base64 -w 0)
+          docker build \
+            --build-arg GOOGLE_DRIVE_ROOT_FOLDER_ID=${{ secrets.GOOGLE_DRIVE_ROOT_FOLDER_ID }} \
+            --build-arg GOOGLE_DRIVE_CREDENTIALS=$CREDS_B64 \
+            --build-arg GCP_SA_KEY=$CREDS_B64 \
+            -t europe-west1-docker.pkg.dev/${{ env.PROJECT_ID }}/stavline/stavline:${{ github.sha }} \
+            -t europe-west1-docker.pkg.dev/${{ env.PROJECT_ID }}/stavline/stavline:latest .
       
       - name: Push Docker image
         run: |
@@ -56,16 +61,25 @@ jobs:
           docker push europe-west1-docker.pkg.dev/${{ env.PROJECT_ID }}/stavline/stavline:latest
       
       - name: Deploy to Cloud Run
+        env:
+          ROOT_FOLDER_ID: ${{ secrets.GOOGLE_DRIVE_ROOT_FOLDER_ID }}
         run: |
-          # Base64 encode the credentials to avoid JSON parsing issues in gcloud flags
           CREDS_B64=$(echo '${{ secrets.GOOGLE_DRIVE_CREDENTIALS }}' | base64 -w 0)
+          
+          gcloud run services update ${{ env.SERVICE_NAME }} \
+            --set-secrets="GOOGLE_DRIVE_CREDENTIALS=GOOGLE_DRIVE_CREDENTIALS:latest, GCP_SA_KEY=GCP_SA_KEY:latest"
           
           gcloud run deploy ${{ env.SERVICE_NAME }} \
             --image europe-west1-docker.pkg.dev/${{ env.PROJECT_ID }}/stavline/stavline:${{ github.sha }} \
             --platform managed \
             --region ${{ env.REGION }} \
             --allow-unauthenticated \
-            --set-env-vars "GOOGLE_DRIVE_ROOT_FOLDER_ID=${{ secrets.GOOGLE_DRIVE_ROOT_FOLDER_ID }},GOOGLE_DRIVE_CREDENTIALS=$CREDS_B64"
+            --set-env-vars "GOOGLE_DRIVE_ROOT_FOLDER_ID=${{ env.ROOT_FOLDER_ID }}" \
+            --update-secrets "GOOGLE_DRIVE_CREDENTIALS=projects/${{ env.PROJECT_ID }}/secrets/GOOGLE_DRIVE_CREDENTIALS:latest, GCP_SA_KEY=projects/${{ env.PROJECT_ID }}/secrets/GCP_SA_KEY:latest," \
+            --memory 512Mi \
+            --cpu 1 \
+            --concurrency 80 \
+            --timeout 300s
       
       - name: Post-deployment Summary
         run: |
